@@ -1,7 +1,7 @@
 import java.awt.*;
 import java.awt.event.*;
-
-public class AccessibleCampusNavigation extends Frame implements ActionListener {
+import javax.swing.*;
+public class AccessibleCampusNavigation extends JFrame implements ActionListener {
 
     Label title, subtitle;
     Label startLabel, destinationLabel, accessibilityLabel;
