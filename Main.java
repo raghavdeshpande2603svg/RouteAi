@@ -3,6 +3,8 @@ public class Main {
         AccessibleCampusNavigation accessibleCampusNavigation = new AccessibleCampusNavigation();
         accessibleCampusNavigation.setVisible(true);
 
+        new AccessibleCampusNavigation().setVisible(true);
+
         
         
     }

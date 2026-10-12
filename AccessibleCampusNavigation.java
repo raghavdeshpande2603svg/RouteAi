@@ -1,6 +1,7 @@
 import java.awt.*;
 import java.awt.event.*;
-import javax.swing.*;
+import javax.swing.JFrame;
+
 public class AccessibleCampusNavigation extends JFrame implements ActionListener {
 
     Label title, subtitle;
@@ -106,7 +107,8 @@ public class AccessibleCampusNavigation extends JFrame implements ActionListener
         routeInformation.setEditable(false);
         add(routeInformation);
 
-        // Bottom Buttons
+        // Navigation Buttons.
+
         viewMap = new Button("View Campus Map");
         viewMap.setBounds(70, 545, 160, 35);
         viewMap.addActionListener(this);
@@ -168,12 +170,12 @@ public class AccessibleCampusNavigation extends JFrame implements ActionListener
 
                 routeInformation.setText(
                         "ACCESSIBLE CAMPUS NAVIGATION\n\n"
-                        + "Current Location: " + start + "\n"
-                        + "Destination: " + end + "\n"
-                        + "Requirement: " + requirement + "\n\n"
-                        + "Route calculation will be connected here.\n"
-                        + "Campus accessibility data is required "
-                        + "to calculate a genuine route.");
+                                + "Current Location: " + start + "\n"
+                                + "Destination: " + end + "\n"
+                                + "Requirement: " + requirement + "\n\n"
+                                + "Route calculation will be connected here.\n"
+                                + "Campus accessibility data is required "
+                                + "to calculate a genuine route.");
             }
         }
 
@@ -187,22 +189,26 @@ public class AccessibleCampusNavigation extends JFrame implements ActionListener
 
         else if (e.getSource() == viewMap) {
 
-            routeInformation.setText(
-                    "CAMPUS MAP\n\n"
-                    + "The campus map will be displayed here "
-                    + "after map development.");
+            new CampusMap();
+
+            // routeInformation.setText(
+            //         "Dummy campus map opened.\n\n"
+            //                 + "Green: Sample accessible route\n"
+            //                 + "R: Ramp marker\n"
+            //                 + "S: Stairs marker\n\n"
+            //                 + "This map uses demonstration data only.");
         }
 
         else if (e.getSource() == viewFacilities) {
 
             routeInformation.setText(
                     "ACCESSIBLE FACILITIES\n\n"
-                    + "1. Ramps\n"
-                    + "2. Lifts\n"
-                    + "3. Accessible Entrances\n"
-                    + "4. Accessible Toilets\n\n"
-                    + "Actual facility locations will be added "
-                    + "after campus data collection.");
+                            + "1. Ramps\n"
+                            + "2. Lifts\n"
+                            + "3. Accessible Entrances\n"
+                            + "4. Accessible Toilets\n\n"
+                            + "Actual facility locations will be added "
+                            + "after campus data collection.");
         }
 
         else if (e.getSource() == exit) {
