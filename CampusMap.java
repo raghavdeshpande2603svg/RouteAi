@@ -65,14 +65,19 @@ public class CampusMap extends Frame implements ActionListener {
     static class State implements Comparable<State> {
         String name;
         int cost;
+        double estimatedTotalCost;
 
-        State(String name, int cost) {
+        State(String name, int cost, double estimatedTotalCost) {
             this.name = name;
             this.cost = cost;
+            this.estimatedTotalCost = estimatedTotalCost;
         }
 
         public int compareTo(State other) {
-            return Integer.compare(cost, other.cost);
+            int estimateComparison = Double.compare(
+                    estimatedTotalCost, other.estimatedTotalCost);
+            return estimateComparison != 0
+                    ? estimateComparison : Integer.compare(cost, other.cost);
         }
     }
 
@@ -246,7 +251,7 @@ public class CampusMap extends Frame implements ActionListener {
         return null;
     }
 
-    // Dijkstra's algorithm with accessibility constraints.
+    // A* search with accessibility constraints and an admissible heuristic.
     private void calculateRoute() {
         String start = startChoice.getSelectedItem();
         String target = targetChoice.getSelectedItem();
@@ -270,7 +275,7 @@ public class CampusMap extends Frame implements ActionListener {
         }
 
         distance.put(start, 0);
-        queue.add(new State(start, 0));
+        queue.add(new State(start, 0, heuristic(start, target, isWheelchair)));
 
         while (!queue.isEmpty()) {
             State current = queue.poll();
@@ -295,16 +300,14 @@ public class CampusMap extends Frame implements ActionListener {
                     continue;
                 }
 
-                // Mobility mode prefers accessible paths but can use
-                // a marked stair connection at a large additional cost.
-                int penalty = (!edge.accessible || edge.stairs) ? 500 : 0;
-                int newCost = current.cost + edge.distance + penalty;
+                int newCost = current.cost + traversalCost(edge);
                 String next = edge.other(current.name);
 
                 if (newCost < distance.get(next)) {
                     distance.put(next, newCost);
                     previous.put(next, current.name);
-                    queue.add(new State(next, newCost));
+                    queue.add(new State(next, newCost,
+                            newCost + heuristic(next, target, isWheelchair)));
                 }
             }
         }
@@ -357,6 +360,43 @@ public class CampusMap extends Frame implements ActionListener {
                 + "\n\nDEMO DATA — verify actual campus accessibility.");
     }
 
+    private int traversalCost(Edge edge) {
+        // Mobility mode prefers accessible paths but can use a marked stair
+        // connection at a large additional cost.
+        int penalty = (!edge.accessible || edge.stairs) ? 500 : 0;
+        return edge.distance + penalty;
+    }
+
+    private double heuristic(String location, String target,
+                             boolean isWheelchair) {
+        Node current = nodes.get(location);
+        Node destination = nodes.get(target);
+        double minimumCostPerCoordinate = Double.POSITIVE_INFINITY;
+
+        for (Edge edge : edges) {
+            if (isWheelchair && (edge.stairs || !edge.accessible)) {
+                continue;
+            }
+
+            Node a = nodes.get(edge.a);
+            Node b = nodes.get(edge.b);
+            double coordinateLength = Math.hypot(a.x - b.x, a.y - b.y);
+            if (coordinateLength > 0) {
+                minimumCostPerCoordinate = Math.min(
+                        minimumCostPerCoordinate,
+                        traversalCost(edge) / coordinateLength);
+            }
+        }
+
+        if (Double.isInfinite(minimumCostPerCoordinate)) {
+            return 0;
+        }
+
+        double directCoordinateDistance = Math.hypot(
+                current.x - destination.x, current.y - destination.y);
+        return directCoordinateDistance * minimumCostPerCoordinate;
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
         Object source = e.getSource();
@@ -370,7 +410,7 @@ public class CampusMap extends Frame implements ActionListener {
             if (visited.isEmpty()) {
                 output.setText("Plan a route first to see visited nodes.");
             } else {
-                output.setText("DIJKSTRA SEARCH ORDER\n\n"
+                output.setText("A* SEARCH ORDER\n\n"
                         + String.join(" -> ", visited)
                         + "\n\nThis is the order nodes were visited, "
                         + "not a complete visual search tree.");
